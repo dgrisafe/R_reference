@@ -1,0 +1,134 @@
+---
+title: "R Reference"
+author: "Dom Grisafe"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+#R packages
+library(readxl)
+library(haven)
+library(dplyr)
+library(stringr)
+library(tidyverse)
+library(tidyr)
+library(xlsx)
+library(labelled)         # add label names
+library(tableone)         # table 1
+library(cowplot)
+library(kableExtra)       # HTML tables
+library(scales)
+library(forcats)          # reorder factors in plots
+library(devtools)
+library(drlib)
+library(mice)             # multiple imputation by chained equations
+library(VIM)              # missing data visualization
+library(janitor)
+library(purrr)
+library(gridExtra)
+library(Hmisc)            # correlations
+library(GGally)           # correlations plot
+library(fBasics)          # basic statistics
+library(citr)             # citation manager using Zotero
+library(viridis)          # color pallettes
+library(gghighlight)      # highlight specific data in ggplot
+library(directlabels)     # direct labels (on loess plots)
+library(pdftools)         # for reading PDFs into R as text
+library(DiagrammeR)       # make diagrams showing NEI-VFQ-25 IRT and CTT hierarchys
+```
+
+#Data Import
+
+
+```{r import}
+
+```
+
+#Data Wrangling
+
+##Rename variables
+
+###Remove Variable Prefix or Suffix
+
+[Blog post](https://www.wtmatthias.com/2017/10/04/find-replace-in-var-names/) explaining how to remove common prefix to many variable names
+```{r}
+# data_octa_intra_wide_1eye %>% 
+#   # get only the first measurements for each individual eye
+#   select(SID, Target, starts_with("1_")) %>% mutate(Target = 1) %>% 
+#   # remove "1_" prefix from variable names
+#   set_names(~stringr::str_replace_all(., "1_", ""))
+```
+
+
+##Spread
+
+```{r}
+# data_octa_intra %>% 
+#   select(Target, Judge, VAD) %>% 
+#   spread(key = Judge, value = VAD)
+```
+
+##Multi-Spread
+
+[Multi-spread function](https://kieranhealy.org/blog/archives/2018/11/06/spreading-multiple-values/) by Dan Sullivan
+```{r}
+
+multi_spread <- function(df, key, value) {
+  
+    # quote key
+    keyq <- rlang::enquo(key)
+    # break value vector into quotes
+    valueq <- rlang::enquo(value)
+    s <- rlang::quos(!!valueq)
+    df %>% gather(variable, value, !!!s) %>%
+        unite(temp, !!keyq, variable) %>%
+        spread(temp, value)
+    
+}
+
+# example of call to multispread function
+  # dataframe %>%
+  #     select(parameter, qol_group, vsqol, estimate, cl_95_low, cl_95_high, p_value) %>% 
+  #     multi_spread(key = "parameter", value = c("estimate", "cl_95_low", "cl_95_high", "p_value"))
+```
+
+#Programming
+
+[Save a permanent function in r](https://stackoverflow.com/questions/14403332/make-a-user-created-function-in-r), and then load it.
+```{r}
+
+# save a permanent function in R
+dump("multi_spread", file = "multi_spread.R")
+
+# load a saved function in R
+source("multi_spread.R")
+```
+
+#Analysis
+
+##Table 1: Sociodemographics
+
+```{r}
+## print table 1 in R
+AFEDS_restrict %>% 
+    select(exposure, outcome_NEIVFQ25_IRT, outcome_NEIVFQ25_CTT, outcome_SF12, covariates_table1)
+
+# function to print select variables for Table 1a
+table1a_print <- function(vars, label, end_row){
+  
+  ## export table 1 to html
+  CreateTableOne(data = table1a_data %>% select(vars), factorVars = catVars_table1) %>% 
+    print(exact = "stage", quote = FALSE, noSpaces = F, printToggle = F, varLabels = T) %>%
+    kableone(digits = 3) %>%
+    kable_styling(
+      #bootstrap table classes
+      bootstrap_options = c("striped", "hover")
+    ) %>% 
+    pack_rows(label, 2, end_row) 
+  
+}
+```
+
