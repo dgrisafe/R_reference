@@ -2,7 +2,9 @@
 title: "R Reference"
 author: "Dom Grisafe"
 date: "`r Sys.Date()`"
-output: html_document
+output: 
+  html_document
+    keep_md: TRUE
 csl: ophthalmology.csl
 bibliography: custombibliography.bib
 ---
@@ -44,6 +46,7 @@ library(scales)
 library(cowplot)
 theme_set(theme_cowplot())
 library(citr)             # citation manager using Zotero
+library(details)          # allows hiding r objects in html "details packages"
 
 # Other R packages
 library(xlsx)
@@ -72,6 +75,10 @@ library(sp)               # required for projections
 library(mgcv)             # generalized additive modelling (gam and bam) and generalized additive mixed modelling 
 library(fields)           # kriging: easily do image plots to check results
 library(spdep)            # areal analysis
+  # point pattern data
+  library(splancs)        # 3D modeling of kernel density estimation
+  library(spatstat)
+
 ```
 
 #R Profile
@@ -81,6 +88,12 @@ Global options can be set in the .Rprofile document. Note, always have a trailin
 ```{r, include = FALSE}
 # edit .Rprofile document
 file.edit("~/.Rprofile")
+```
+
+Print session details
+```{r}
+# prints session info
+details::details(object = sessioninfo::session_info(), summary = 'current session info')
 ```
 
 
@@ -103,10 +116,19 @@ Use this trick to set a common link for the folder directory, then change the su
 
 # this changes the directory from the "Programs" to the "Data" folder by substituting strings
 data.dir = gsub('/Programs', '/Data', getwd())
-
-# when calling data, instead of changing the directory manually, just call the string substitution to now direct to the "Data" folder, and then the name of the file.
-pm25 = read.csv(paste0(data.dir, "/pm25_ca_2018.csv"))
 ```
+
+##Read CSV
+```{r}
+# when calling data, instead of changing the directory manually, just call the string substitution to now direct to the "Data" folder, and then the name of the file.
+pm25 <- read.csv(paste0(data.dir, "/pm25_ca_2018.csv"))
+```
+
+##Read SAS
+```{r}
+data_lales_ce <- read_sas(data_file = paste0(data_dir, "/datafile.sas7bdat"))
+```
+
 
 ##Save and load data frame
 

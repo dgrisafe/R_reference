@@ -1,0 +1,161 @@
+---
+title: "Package Calendar by Emit Hvitfeldt"
+author: "Dom Grisafe"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r echo = FALSE}
+# prints session info
+details::details(object = sessioninfo::session_info(), summary = 'current session info')
+```
+
+#2019{.tabset}
+
+##Day 1: Datalegreyar
+
+https://www.hvitfeldt.me/pkgcal2019/1/
+
+```{r}
+# devtools::install_github('emitanaka/datalegreyar')
+
+# get data for "Last Christmas" song
+# remotes::install_github("PMassicotte/gtrendsR")
+library(gtrendsR)
+last_christmas <- gtrends("Last Christmas", time = "today 3-m")
+
+# use the datafy() function to combine the values and the text
+library(datalegreyar)
+last_christmas_data <- datafy(
+  values = last_christmas$interest_over_time$hits,
+  text = "Last Christmas",
+  ignore_space = FALSE
+)
+
+last_christmas_data
+
+# pass the datafied object to fig() to render it in our document
+# note: this only shows up in the html knitted document
+datalegreyar::fig(last_christmas_data, size = 60)
+
+# change the style, add limits
+fig(last_christmas_data, size = 60, type = "gradient", xlabs = c("sep 1", "dec 1"))
+
+# function for easy use
+datalegreyar_factory <- function(text, size) {
+  data <- datafy(
+    values = gtrends(text, time = "today 3-m")$interest_over_time$hits,
+    text = text,
+    ignore_space = FALSE
+  )
+  fig(data, size = size, type = "gradient", xlabs = c("sep 1", "dec 1"))
+}
+datalegreyar_factory("Drummer Boy", size = 60) 
+datalegreyar_factory("White Christmas", size = 50)
+```
+
+##Day 2: Glue
+
+https://www.hvitfeldt.me/pkgcal2019/2/
+
+```{r}
+# install.packages("glue")
+
+library(glue)
+
+color <- "red"
+glue("Santa packed a {color} present")
+
+## Santa packed a red present
+color <- c("red", "blue", "green")
+glue("Santa packed a {color} present")
+
+#This is commonly done by passing in a defined variable outside glue(), but remember that any expression can be passed to glue().
+glue("`mtcars` has {nrow(mtcars)} rows and {ncol(mtcars)} columns")
+
+# use the arguments .open and .close to redefine the borders
+# useful if curly brackets used for something else
+n <- 1000000000 # number of children
+glue(.open = "<<", .close = ">>",
+  "Santa uses the formula $<<n>>^{magic + love}$ to determine how much sugar to give to the elfs."
+     )
+
+# example with summary data
+  library(dplyr)
+  
+  # make sumary dataset
+  mtcars_summarized <- mtcars %>%
+    group_by(cyl) %>%
+    summarise(n = n(),
+              min_wt = min(wt),
+              max_wt = max(wt)) %>%
+    mutate_all(round, digits = 2)
+    mtcars_summarized
+  
+    # print sentence
+    cat("`mtcars` has:\n")
+    glue_data(mtcars_summarized,
+              "{n} cars with {cyl} cylinders, with a weight range of {min_wt*1000}-{max_wt*1000} lbs")
+```
+
+##Day 3: Details
+
+https://www.hvitfeldt.me/pkgcal2019/3/
+
+```{r}
+# install.packages("details")
+```
+
+The bare html code below creates a manual "details" drop down tag, without using R code.
+
+<details>
+
+ <summary>Secret list of names</summary>
+ 
+ Aura
+ 
+ Dona
+ 
+ Danyelle
+ 
+ Maribel
+ 
+ Evonne
+ 
+ Elly
+ 
+ Joye
+ 
+ Monet
+ 
+ Donny
+ 
+ Georgeanna
+ 
+</details>
+
+```{r}
+library(details)
+library(magrittr)
+
+secret <- c("Madeline", "Tom", "Shavon", "Krystyna", "Callie",
+            "Damon", "Shellie", "Bebe", "Candis", "Laure")
+```
+
+Now, this details package allows you to hide r code objects in "details" drop-down menus
+
+```{r}
+details(secret)
+```
+
+This is good for hiding session info
+
+```{r}
+sessioninfo::session_info() %>%
+  details::details(summary = 'current session info')
+```
+
