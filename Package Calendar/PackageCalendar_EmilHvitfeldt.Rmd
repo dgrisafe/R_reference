@@ -159,3 +159,24 @@ sessioninfo::session_info() %>%
   details::details(summary = 'current session info')
 ```
 
+
+##Dat 4: Carbonate
+
+https://www.hvitfeldt.me/pkgcal2019/4/
+
+This produces pretty image files of selected code, copied to your clipboard
+
+```{r}
+# install.packages("carbonate")
+library(carbonate)
+
+# copy some code to your clipboard
+x <- carbon$new()
+
+# this lets you check the code you have is what you wanted
+x$code
+
+# this opens a webpage in browser where there is a pretty image of your code, which can then be downloaded
+x$browse()
+```
+
