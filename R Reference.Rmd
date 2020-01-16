@@ -2,9 +2,21 @@
 title: "R Reference"
 author: "Dom Grisafe"
 date: "`r Sys.Date()`"
+
 output: 
-  html_document
+  html_document:
     keep_md: TRUE
+
+# send output reports to a different directory: 
+    # https://stackoverflow.com/questions/28894515/rmarkdown-directing-output-file-into-a-directory
+knit: (function(inputFile, encoding) { 
+      rmarkdown::render(inputFile,
+                        encoding = encoding, 
+                        output_file = dirname(inputFile), 
+                        output_dir = "/Volumes/GoogleDrive/My Drive/OpSmile-Outcomes/Reports") 
+                        })
+
+# custom references
 csl: ophthalmology.csl
 bibliography: custombibliography.bib
 ---
@@ -36,6 +48,7 @@ knitr::opts_chunk$set(echo = TRUE)
 library(readxl)
 library(haven)
 library(tidyverse)
+library(broom)            # clean data tables from stats models
 library(kableExtra)       # HTML tables
 library(tableone)         # table 1
 library(Hmisc)            # labels and correlations
@@ -47,6 +60,9 @@ library(cowplot)
 theme_set(theme_cowplot())
 library(citr)             # citation manager using Zotero
 library(details)          # allows hiding r objects in html "details packages"
+library(stats)            # statistics and model diagnostics
+library(car)              # advanced utilities for regression modeling
+library(MASS)             # Modern Applied Statistics with S
 
 # Other R packages
 library(xlsx)
@@ -61,6 +77,7 @@ library(gghighlight)      # highlight specific data in ggplot
 library(directlabels)     # direct labels (on loess plots)
 library(pdftools)         # for reading PDFs into R as text
 library(DiagrammeR)       # make diagrams showing NEI-VFQ-25 IRT and CTT hierarchys
+library(showtext)         # custom fonts https://stackoverflow.com/questions/34522732/changing-fonts-in-ggplot2
 
 # psychometrics R packages
 library(ltm)              # Latent Trait Models under IRT
@@ -72,9 +89,10 @@ library(sf)               # handle simple features objects
 library(ggmap)            # for querying google API for geocoding
 library(rgdal)            # function that has the projection dataframe
 library(sp)               # required for projections
-library(mgcv)             # generalized additive modelling (gam and bam) and generalized additive mixed modelling 
-library(fields)           # kriging: easily do image plots to check results
+library(mgcv)             # generalized additive modelling (gam and bam) and generalized additive mixed modelling
+library(fields)           # plots kriging and GAM results
 library(spdep)            # areal analysis
+
   # point pattern data
   library(splancs)        # 3D modeling of kernel density estimation
   library(spatstat)
@@ -99,12 +117,16 @@ details::details(object = sessioninfo::session_info(), summary = 'current sessio
 
 #Formatting in Rmd
 
+##Text Color HTML
 <span style="color:blue">This is an example of editing the html of the text outside of coding chunks.</span>
 
+##Load Image (.png or .jpeg)
 add an image into Rmd with the following:
 ![](yo-dawg.jpeg){#id .class width=75% height=75%}
 
+##LaTeX
 
+\[ CRw = \sqrt2 * 1.96 * Sw \]
 
 #Data Import and Export
 
@@ -275,7 +297,49 @@ table1a_print <- function(vars, label, end_row){
 }
 ```
 
+#ggplot2
+
+##Integer Axis Labels
+```{r}
+# allows clean integer values for axis labels
+#    https://stackoverflow.com/questions/15622001/how-to-display-only-integer-values-on-an-axis-using-ggplot2
+scale_y_continuous(breaks = function(x) unique(floor(pretty(seq(0, (max(x) + 1) * 1.1)))))
+```
+
+
+##Mannual Labeling
+Manually calculating max value in facet_wrap of histogram. This is useful for adding a label programatically to facets of histograms.
+```{r}
+# get number of cases per bin
+df_lip_score_ncase <- p_data %>% 
+  # create categories of lip scores binned
+  mutate(lip_score_bins = cut(lip_score, seq(0, 5, bin_width_size), include.lowest = T)) %>% 
+  # group by unit
+  group_by(country, lip_score_bins) %>% 
+  summarise(counter = n()) %>% 
+  group_by(country) %>% 
+  filter(counter == max(counter))
+
+# get max y axis height from bin with greatest number of cases
+df_max_case <- df_lip_score_ncase$counter %>% max()
+```
+
+##Factors and ggplot2
+
+###Reorder by Value within Facets
+This function allows 
+```{r}
+library(tidytext)
+# https://juliasilge.com/blog/reorder-within/
+mutate(
+  new_factor = reorder_within(x = name, by = n, within = decade)
+)
+```
+
+
 #Images
+
+[Tips and Tricks for Images in R](http://zevross.com/blog/2017/06/19/tips-and-tricks-for-working-with-images-and-figures-in-r-markdown-documents/#default-settings-for-including-images-and-figures-in-r-markdown) is a useful summary.
 
 ##Save an image
 ```{r}
@@ -286,6 +350,34 @@ dev.off()
 
 add an image into Rmd with the following:
 ![](image.png){#id .class width=75% height=75%}
+
+
+#Take Screenshot of Code: Carbonate
+https://www.hvitfeldt.me/pkgcal2019/4/
+This produces pretty image files of selected code, copied to your clipboard
+```{r}
+# install.packages("carbonate")
+library(carbonate)
+
+# copy some code to your clipboard
+x <- carbon$new()
+
+# this lets you check the code you have is what you wanted
+x$code
+
+# this opens a webpage in browser where there is a pretty image of your code, which can then be downloaded
+x$browse()
+```
+
+
+#Statistics
+
+##Basics
+
+```{r}
+# standardize a variable
+std_var <- function(x){(x - mean(x)) / sd(x)}
+```
 
 
 #References
