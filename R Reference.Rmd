@@ -114,6 +114,16 @@ Print session details
 details::details(object = sessioninfo::session_info(), summary = 'current session info')
 ```
 
+#Knitr Functions
+
+##Stop knitr from processing remaining document
+
+`r knitr::knit_exit()`
+
+This line of code tells knitr to stop processing Rmd file after this line. 
+Super useful for really long Rmd files, when wanting to only work on a portion of them.
+I used this in the OpSmile board report file because it was such a monster size.
+
 
 #Formatting in Rmd
 
